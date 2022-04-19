@@ -101,7 +101,7 @@ Go to definition - gd
 
 Hover - K
 
-Go implementation - gi
+Go to implementation - gi
 
 Type definition - Space + D
 

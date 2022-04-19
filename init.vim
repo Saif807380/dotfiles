@@ -71,7 +71,7 @@ let g:lightline = {'colorscheme': 'onedark'}
 let g:NERDTreeIgnore = ['^node_modules$','^env$', '^__pycache__$', '.DS_Store']
 
 autocmd StdinReadPre * let s:std_in=1
-autocmd VimEnter * if argc() == 0 && !exists('s:std_in') | NERDTree | endif
+" autocmd VimEnter * if argc() == 0 && !exists('s:std_in') | NERDTree | endif
 autocmd BufEnter * if bufname('#') =~ 'NERD_tree_\d\+' && bufname('%') !~ 'NERD_tree_\d\+' && winnr('$') > 1 |
     \ let buf=bufnr() | buffer# | execute "normal! \<C-W>w" | execute 'buffer'.buf | endif
 autocmd BufEnter * if winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() | quit | endif
