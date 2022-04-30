@@ -20,7 +20,9 @@ set hlsearch
 set cursorline
 set splitright
 set splitbelow
+
 " Keybindings
+" Completion
 inoremap <silent><expr> <C-Space> compe#complete()
 inoremap <silent><expr> <CR>      compe#confirm(luaeval("require 'nvim-autopairs'.autopairs_cr()"))
 inoremap <silent><expr> <C-e>     compe#close('<C-e>')
@@ -29,15 +31,21 @@ inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 
 nnoremap d "_d
 vnoremap d "_d
+inoremap jk <ESC>
 
+" Window Navigation
 nnoremap <space>h <C-w>h
 nnoremap <space>j <C-w>j
 nnoremap <space>k <C-w>k
 nnoremap <space>l <C-w>l
 nnoremap <space>t :tabnext<CR>
-inoremap jk <ESC>
 
+" Plugin related
 nnoremap <C-k>v :MarkdownPreview<CR>
+
+" Comments
+nnoremap <C-/> gcc
+vnoremap <C-/> gc
 
 map <space>f :NERDTreeMirror<CR>:NERDTreeToggle<CR>:NERDTreeRefresh<CR>
 map <space>p :FZF<CR>
@@ -63,6 +71,9 @@ Plug 'Xuyuanp/nerdtree-git-plugin'
 Plug 'elzr/vim-json'
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install'  }
 Plug 'plasticboy/vim-markdown'
+Plug 'mhinz/vim-startify'
+Plug 'ray-x/lsp_signature.nvim'
+Plug 'numToStr/Comment.nvim'
 call plug#end()
 
 " Theme/colorscheme
@@ -97,11 +108,18 @@ let g:mkdp_auto_close = 0
 lua << EOF
 require("bufferline").setup{}
 
+require('Comment').setup()
+
 local on_attach = function(client, bufnr)
   local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
   local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
+  require "lsp_signature".on_attach({
+      bind = true, -- This is mandatory, otherwise border config won't get registered.
+      handler_opts = {
+        border = "rounded"
+      }
+    }, bufnr)
 
-  --Enable completion triggered by <c-x><c-o>
   buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
 
   -- Mappings.
@@ -120,10 +138,10 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', '<space>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
   buf_set_keymap('n', '<space>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
   buf_set_keymap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
-  buf_set_keymap('n', '<space>e', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', opts)
-  buf_set_keymap('n', '[d', '<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>', opts)
-  buf_set_keymap('n', ']d', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', opts)
-  buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
+  buf_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
+  buf_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
+  buf_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
+  buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.setloclist()<CR>', opts)
   buf_set_keymap("n", "<space>bf", "<cmd>lua vim.lsp.buf.formatting()<CR>", opts)
 
 end
@@ -134,15 +152,36 @@ require("indent_blankline").setup {
     show_current_context_start = true,
 }
 
-require'lspconfig'.gopls.setup{
-    on_attach=on_attach
+
+local servers = { 'clangd', 'dockerls', 'gopls',
+                    'pyright', 'rust_analyzer', 'tsserver',
+                    'vuels', 'yamlls' }
+
+for _, lsp in pairs(servers) do
+  require('lspconfig')[lsp].setup {
+    on_attach = on_attach,
+ }
+end
+
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities.textDocument.completion.completionItem.snippetSupport = true
+
+require('lspconfig').emmet_ls.setup({
+    on_attach = on_attach,
+    capabilities = capabilities,
+    filetypes = { "html", "css", "typescriptreact", "javascriptreact" },
+})
+
+require'lspconfig'.html.setup {
+    on_attach = on_attach,
+    capabilities = capabilities,
 }
-require'lspconfig'.pyright.setup{
-    on_attach=on_attach
+
+require'lspconfig'.jsonls.setup {
+    on_attach = on_attach,
+    capabilities = capabilities,
 }
-require'lspconfig'.eslint.setup{
-    on_attach=on_attach
-}
+
 require('gitsigns').setup {
   signs = {
     add = { hl = 'GitGutterAdd', text = '|' },
