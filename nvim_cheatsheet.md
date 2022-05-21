@@ -30,6 +30,8 @@ Append - a
 Append at the end of line - A
 
 Escape  - esc | jk 
+
+Visual Mode Comment - gc
 ```
 
 ### Tabs and Window Keybindings
