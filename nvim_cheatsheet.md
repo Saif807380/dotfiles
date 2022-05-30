@@ -116,4 +116,12 @@ Show references - gr
 Show line diagnostic - Space + e
 
 Format code - Space + bf
+
+Comment single line - gcc
+
+Comment selected code - gc
 ```
+
+## MarkdownPreview
+
+Preview - Ctrl + k, v
